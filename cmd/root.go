@@ -379,6 +379,14 @@ func startWorker(userInput string, failOnSeverity *vulnerability.Severity) <-cha
 			}
 		}
 
+		vexMatcher := grype.NewVexMatcher()
+
+		remainingMatches, ignoredMatches, err = vexMatcher.FindMatches(remainingMatches, ignoredMatches)
+		if err != nil {
+			errs <- err
+			return
+		}
+
 		pb := models.PresenterConfig{
 			Matches:          *remainingMatches,
 			IgnoredMatches:   ignoredMatches,
@@ -394,6 +402,13 @@ func startWorker(userInput string, failOnSeverity *vulnerability.Severity) <-cha
 			Type:  event.VulnerabilityScanningFinished,
 			Value: presenter.GetPresenter(presenterConfig, pb),
 		})
+		ems := remainingMatches.AllByPkgID()
+		fmt.Printf("%+v\n%+v", remainingMatches, ems)
+
+		fmt.Fprintf(os.Stderr, "matches: %d", len(ems))
+		for id, _ := range ems {
+			fmt.Printf("%s\n", id)
+		}
 	}()
 	return errs
 }
