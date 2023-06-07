@@ -19,6 +19,7 @@ type VexMatcher struct {
 
 type VEXIgnoreReport struct {
 	Vulnerability string
+	Component     string
 	Author        string
 	DocumentID    string
 	Statement     openvex.Statement
@@ -37,12 +38,16 @@ type VexMatcherOptions struct {
 	IgnoreProduct bool
 }
 
-func (vm *VexMatcher) FindMatches(remainingMatches *match.Matches, ignoredMatches []match.IgnoredMatch) (*match.Matches, []match.IgnoredMatch, error) {
+func (vm *VexMatcher) FindMatches(
+	remainingMatches *match.Matches, ignoredMatches []match.IgnoredMatch,
+) (
+	*match.Matches, []match.IgnoredMatch, []VEXIgnoreReport, error,
+) {
 	// Trim this code: Debug log
 	var errLog error
 	debuglog, errLog = os.Create("/tmp/output.txt")
 	if errLog != nil {
-		return nil, nil, fmt.Errorf("unable to open output file: %w", errLog)
+		return nil, nil, nil, fmt.Errorf("unable to open output file: %w", errLog)
 	}
 	defer debuglog.Close()
 
@@ -52,25 +57,25 @@ func (vm *VexMatcher) FindMatches(remainingMatches *match.Matches, ignoredMatche
 	// If no vex documents are defined, return here.
 	if len(vm.AppConfig.VexDocuments) == 0 {
 		fmt.Fprintf(debuglog, "No vex documents defined, no vex data available")
-		return remainingMatches, ignoredMatches, nil
+		return remainingMatches, ignoredMatches, nil, nil
 	}
 
 	doc, err := vm.impl.ParseVexDoc(vm.AppConfig.VexDocuments[0])
 	if err != nil {
-		return nil, nil, fmt.Errorf("parsing vex document: %w", err)
+		return nil, nil, nil, fmt.Errorf("parsing vex document: %w", err)
 	}
 
-	newMatches, err := vm.impl.FilterMatches(doc, remainingMatches)
+	newMatches, report, err := vm.impl.FilterMatches(doc, remainingMatches)
 	if err != nil {
-		return nil, nil, fmt.Errorf("checking matches against VEX data: %w", err)
+		return nil, nil, nil, fmt.Errorf("checking matches against VEX data: %w", err)
 	}
 
-	return newMatches, ignoredMatches, nil
+	return newMatches, ignoredMatches, report, nil
 }
 
 type vexMatcherImplementation interface {
 	ParseVexDoc(string) (*openvex.VEX, error)
-	FilterMatches(*openvex.VEX, *match.Matches) (*match.Matches, error)
+	FilterMatches(*openvex.VEX, *match.Matches) (*match.Matches, []VEXIgnoreReport, error)
 	UpdateIgnoredMatches(*match.Matches, []match.IgnoredMatch) []match.IgnoredMatch
 }
 
@@ -110,7 +115,7 @@ func (ovm *openvexMatcher) ParseVexDoc(path string) (*openvex.VEX, error) {
 
 // FilterMatches takes a VEX document and a Matches object and returns the filtered
 // list by discarding matches in OpenVEX
-func (ovm *openvexMatcher) FilterMatches(doc *openvex.VEX, matches *match.Matches) (*match.Matches, error) {
+func (ovm *openvexMatcher) FilterMatches(doc *openvex.VEX, matches *match.Matches) (*match.Matches, []VEXIgnoreReport, error) {
 	remainingMatches := match.NewMatches()
 	report := []VEXIgnoreReport{}
 	// ignoredMatches := []match.IgnoredMatch{}
@@ -171,7 +176,7 @@ func (ovm *openvexMatcher) FilterMatches(doc *openvex.VEX, matches *match.Matche
 
 			match, err := purlGlobsPurl(compPurl, m.Package.PURL)
 			if err != nil {
-				return nil, fmt.Errorf("matching purls: %w", err)
+				return nil, nil, fmt.Errorf("matching purls: %w", err)
 			}
 
 			if match {
@@ -196,6 +201,7 @@ func (ovm *openvexMatcher) FilterMatches(doc *openvex.VEX, matches *match.Matche
 		// VEX data, skip it and a record in the report
 		report = append(report, VEXIgnoreReport{
 			Vulnerability: m.Vulnerability.ID,
+			Component:     m.Package.PURL,
 			Author:        doc.Author,
 			DocumentID:    doc.ID,
 			Statement:     *statement,
@@ -204,7 +210,7 @@ func (ovm *openvexMatcher) FilterMatches(doc *openvex.VEX, matches *match.Matche
 
 	fmt.Fprintf(debuglog, "%+v", report)
 
-	return &remainingMatches, nil
+	return &remainingMatches, report, nil
 }
 
 func (ovm *openvexMatcher) UpdateIgnoredMatches(newMatches *match.Matches, oldIgnored []match.IgnoredMatch) []match.IgnoredMatch {

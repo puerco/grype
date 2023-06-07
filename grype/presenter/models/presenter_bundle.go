@@ -1,6 +1,7 @@
 package models
 
 import (
+	"github.com/anchore/grype/grype"
 	"github.com/anchore/grype/grype/match"
 	"github.com/anchore/grype/grype/pkg"
 	"github.com/anchore/grype/grype/vulnerability"
@@ -16,4 +17,5 @@ type PresenterConfig struct {
 	SBOM             *sbom.SBOM
 	AppConfig        interface{}
 	DBStatus         interface{}
+	VexReport        []grype.VEXIgnoreReport
 }

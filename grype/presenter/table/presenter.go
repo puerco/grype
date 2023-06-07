@@ -8,6 +8,7 @@ import (
 
 	"github.com/olekukonko/tablewriter"
 
+	"github.com/anchore/grype/grype"
 	grypeDb "github.com/anchore/grype/grype/db/v5"
 	"github.com/anchore/grype/grype/match"
 	"github.com/anchore/grype/grype/pkg"
@@ -26,6 +27,7 @@ type Presenter struct {
 	packages         []pkg.Package
 	metadataProvider vulnerability.MetadataProvider
 	showSuppressed   bool
+	vexReport        []grype.VEXIgnoreReport
 }
 
 // NewPresenter is a *Presenter constructor
@@ -36,6 +38,7 @@ func NewPresenter(pb models.PresenterConfig, showSuppressed bool) *Presenter {
 		packages:         pb.Packages,
 		metadataProvider: pb.MetadataProvider,
 		showSuppressed:   showSuppressed,
+		vexReport:        pb.VexReport,
 	}
 }
 
@@ -100,6 +103,44 @@ func (pres *Presenter) Present(output io.Writer) error {
 
 	table.AppendBulk(rows)
 	table.Render()
+
+	if pres.vexReport != nil && len(pres.vexReport) > 0 {
+		fmt.Fprintln(
+			output, "\n\nOPENVEX REPORT\n==============\n\nThese scanning results vulnerabilities from VEX data:\n\n",
+		)
+		vexTable := tablewriter.NewWriter(output)
+		vexColumns := []string{"Vulnerability", "Status", "Justification", "Component"}
+		vexTable.SetHeader(vexColumns)
+		vexTable.SetAutoWrapText(false)
+		vexTable.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
+		vexTable.SetAlignment(tablewriter.ALIGN_LEFT)
+
+		vexTable.SetHeaderLine(false)
+		vexTable.SetBorder(false)
+		vexTable.SetAutoFormatHeaders(true)
+		vexTable.SetCenterSeparator("")
+		vexTable.SetColumnSeparator("")
+		vexTable.SetRowSeparator("")
+		vexTable.SetTablePadding("  ")
+		vexTable.SetNoWhiteSpace(true)
+		vexTable.SetAutoMergeCells(true)
+		vexTable.SetAlignment(tablewriter.ALIGN_LEFT)
+		// vexTable.SetRowLine(true)
+		rows := make([][]string, 0)
+		// vexTable.SetAutoMergeCellsByColumnIndex([]int{1, 2, 3, 4})
+		for _, r := range pres.vexReport {
+			parts := strings.Split(r.Component, "?")
+			rows = append(rows, []string{
+				r.Vulnerability,
+				string(r.Statement.Status),
+				string(r.Statement.Justification),
+				parts[0],
+			})
+
+		}
+		vexTable.AppendBulk(rows)
+		vexTable.Render()
+	}
 
 	return nil
 }

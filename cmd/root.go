@@ -390,8 +390,8 @@ func startWorker(userInput string, failOnSeverity *vulnerability.Severity) <-cha
 
 		vexMatcher := grype.NewVexMatcher()
 		vexMatcher.AppConfig = appConfig
-
-		remainingMatches, ignoredMatches, err = vexMatcher.FindMatches(remainingMatches, ignoredMatches)
+		var vexIgnoreReport []grype.VEXIgnoreReport
+		remainingMatches, ignoredMatches, vexIgnoreReport, err = vexMatcher.FindMatches(remainingMatches, ignoredMatches)
 		if err != nil {
 			errs <- err
 			return
@@ -406,6 +406,7 @@ func startWorker(userInput string, failOnSeverity *vulnerability.Severity) <-cha
 			SBOM:             sbom,
 			AppConfig:        appConfig,
 			DBStatus:         status,
+			VexReport:        vexIgnoreReport,
 		}
 
 		bus.Publish(partybus.Event{
