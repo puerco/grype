@@ -3,15 +3,18 @@ package grype
 import (
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/anchore/grype/grype/match"
+	"github.com/anchore/grype/internal/config"
 	openvex "github.com/openvex/go-vex/pkg/vex"
 )
 
+var debuglog *os.File
+
 type VexMatcher struct {
-	Options VexMatcherOptions
-	impl    vexMatcherImplementation
+	Options   VexMatcherOptions
+	AppConfig *config.Application
+	impl      vexMatcherImplementation
 }
 
 type VEXIgnoreReport struct {
@@ -35,7 +38,24 @@ type VexMatcherOptions struct {
 }
 
 func (vm *VexMatcher) FindMatches(remainingMatches *match.Matches, ignoredMatches []match.IgnoredMatch) (*match.Matches, []match.IgnoredMatch, error) {
-	doc, err := vm.impl.ParseVexDoc("/tmp/vex")
+	// Trim this code: Debug log
+	var errLog error
+	debuglog, errLog = os.Create("/tmp/output.txt")
+	if errLog != nil {
+		return nil, nil, fmt.Errorf("unable to open output file: %w", errLog)
+	}
+	defer debuglog.Close()
+
+	fmt.Fprintln(debuglog, "OPENVEX DEBUG REPORT")
+	// Trim this code: Debug log
+
+	// If no vex documents are defined, return here.
+	if len(vm.AppConfig.VexDocuments) == 0 {
+		fmt.Fprintf(debuglog, "No vex documents defined, no vex data available")
+		return remainingMatches, ignoredMatches, nil
+	}
+
+	doc, err := vm.impl.ParseVexDoc(vm.AppConfig.VexDocuments[0])
 	if err != nil {
 		return nil, nil, fmt.Errorf("parsing vex document: %w", err)
 	}
@@ -57,31 +77,35 @@ type vexMatcherImplementation interface {
 type openvexMatcher struct{}
 
 func (ovm *openvexMatcher) ParseVexDoc(path string) (*openvex.VEX, error) {
-	return &openvex.VEX{
-		Metadata: openvex.Metadata{},
-		Statements: []openvex.Statement{
-			{
-				Vulnerability: "CVE-2023-1255",
-				Timestamp:     &time.Time{},
-				Products:      []string{"pkg:oci/alpine@sha256%3A02bb6f428431fbc2809c5d1b41eab5a68350194fb508869a33cb1af4444c9b11"},
-				Subcomponents: []string{
-					"pkg:apk/alpine/libcrypto3@3.0.8-r3?arch=x86_64&upstream=openssl&distro=alpine-3.17.3",
-					"pkg:apk/alpine/libssl3@3.0.8-r3?arch=x86_64&upstream=openssl&distro=alpine-3.17.3",
-				},
-				Status:          "not_affected",
-				StatusNotes:     "This is obvfiously a demo and fake VEX data",
-				Justification:   openvex.InlineMitigationsAlreadyExist,
-				ImpactStatement: "This image includes a hack in the amd64 variant to limit reads when decrypting AES-XTS",
-			},
-		},
-	}, nil
 	/*
-		doc, err := openvex.OpenJSON(path)
-		if err != nil {
-			return nil, fmt.Errorf("opening openvex document: %s", err)
-		}
+		return &openvex.VEX{
+			Metadata: openvex.Metadata{},
+			Statements: []openvex.Statement{
+				{
+					Vulnerability: "CVE-2023-1255",
+					Timestamp:     &time.Time{},
+					Products:      []string{"pkg:oci/alpine@sha256%3A02bb6f428431fbc2809c5d1b41eab5a68350194fb508869a33cb1af4444c9b11"},
+					Subcomponents: []string{
+						"pkg:apk/alpine/libcrypto3@3.0.8-r3?arch=x86_64&upstream=openssl&distro=alpine-3.17.3",
+						"pkg:apk/alpine/libssl3@3.0.8-r3?arch=x86_64&upstream=openssl&distro=alpine-3.17.3",
+					},
+					Status:          "not_affected",
+					StatusNotes:     "This is obvfiously a demo and fake VEX data",
+					Justification:   openvex.InlineMitigationsAlreadyExist,
+					ImpactStatement: "This image includes a hack in the amd64 variant to limit reads when decrypting AES-XTS",
+				},
+			},
+		}, nil
+	*/
 
-		return doc, nil*/
+	doc, err := openvex.OpenJSON(path)
+	if err != nil {
+		return nil, fmt.Errorf("opening openvex document: %s", err)
+	}
+
+	fmt.Fprintf(debuglog, "Parsed Openvex Data from %s:\n%+v\n", path, doc)
+
+	return doc, nil
 }
 
 // FilterMatches takes a VEX document and a Matches object and returns the filtered
@@ -90,18 +114,13 @@ func (ovm *openvexMatcher) FilterMatches(doc *openvex.VEX, matches *match.Matche
 	remainingMatches := match.NewMatches()
 	report := []VEXIgnoreReport{}
 	// ignoredMatches := []match.IgnoredMatch{}
-	outfile, err := os.Create("/tmp/output.txt")
-	if err != nil {
-		return nil, fmt.Errorf("unable to open output file: %w", err)
-	}
-	defer outfile.Close()
 
 	// Build a catalog of matches in the openvex doc
 	vulnCatalog := map[string]map[string]openvex.Statement{}
 	for _, s := range doc.Statements {
 		// TODO(puerco): Implement
-		// Here we need to match the image to the product purl in the
-		// vex statement, unless options.IgnoreProduct is set.
+		// Here we need to match the image identifier to the product purl in the
+		// VEX statement, unless options.IgnoreProduct is set.
 
 		// Cycle subcomponents
 		for _, identifier := range s.Subcomponents {
@@ -116,7 +135,12 @@ func (ovm *openvexMatcher) FilterMatches(doc *openvex.VEX, matches *match.Matche
 			}
 
 			// but is newer...
-			if s.Timestamp.Before(*vulnCatalog[s.Vulnerability][identifier].Timestamp) {
+			timestamp := s.Timestamp
+			if timestamp == nil {
+				timestamp = doc.Timestamp
+			}
+
+			if timestamp.Before(*vulnCatalog[s.Vulnerability][identifier].Timestamp) {
 				// ... discard
 				continue
 			}
@@ -126,12 +150,11 @@ func (ovm *openvexMatcher) FilterMatches(doc *openvex.VEX, matches *match.Matche
 		}
 	}
 
-	fmt.Fprintln(outfile, "VEX Debug Data")
-	fmt.Fprintf(outfile, "Processing %d matches\n", len(matches.Sorted()))
+	fmt.Fprintf(debuglog, "Processing %d matches\n", len(matches.Sorted()))
 
 	// Now, let's go through grype's matches
 	for _, m := range matches.Sorted() {
-		fmt.Fprintf(outfile, "%s → %s\n", m.Vulnerability.ID, m.Package.PURL)
+		fmt.Fprintf(debuglog, "%s → %s\n", m.Vulnerability.ID, m.Package.PURL)
 
 		// If the vex doc does not have data for this vulnerability, continue
 		if _, ok := vulnCatalog[m.Vulnerability.ID]; !ok {
@@ -179,9 +202,9 @@ func (ovm *openvexMatcher) FilterMatches(doc *openvex.VEX, matches *match.Matche
 		})
 	}
 
-	fmt.Fprintf(outfile, "%+v", report)
+	fmt.Fprintf(debuglog, "%+v", report)
 
-	return &remainingMatches, nil // errors.New("Fallamos adredede mano")
+	return &remainingMatches, nil
 }
 
 func (ovm *openvexMatcher) UpdateIgnoredMatches(newMatches *match.Matches, oldIgnored []match.IgnoredMatch) []match.IgnoredMatch {

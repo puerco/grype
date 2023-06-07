@@ -192,6 +192,11 @@ func setRootFlags(flags *pflag.FlagSet) {
 		"platform", "", "",
 		"an optional platform specifier for container image sources (e.g. 'linux/arm64', 'linux/arm64/v8', 'arm64', 'linux')",
 	)
+
+	flags.StringArrayP(
+		"vex", "", nil,
+		"OpenVEX documents to be applied to scanner results",
+	)
 }
 
 //nolint:revive
@@ -249,6 +254,10 @@ func bindRootConfigOptions(flags *pflag.FlagSet) error {
 	}
 
 	if err := viper.BindPFlag("name", flags.Lookup("name")); err != nil {
+		return err
+	}
+
+	if err := viper.BindPFlag("vex", flags.Lookup("vex")); err != nil {
 		return err
 	}
 
@@ -380,6 +389,7 @@ func startWorker(userInput string, failOnSeverity *vulnerability.Severity) <-cha
 		}
 
 		vexMatcher := grype.NewVexMatcher()
+		vexMatcher.AppConfig = appConfig
 
 		remainingMatches, ignoredMatches, err = vexMatcher.FindMatches(remainingMatches, ignoredMatches)
 		if err != nil {
@@ -403,9 +413,8 @@ func startWorker(userInput string, failOnSeverity *vulnerability.Severity) <-cha
 			Value: presenter.GetPresenter(presenterConfig, pb),
 		})
 		ems := remainingMatches.AllByPkgID()
-		fmt.Printf("%+v\n%+v", remainingMatches, ems)
-
-		fmt.Fprintf(os.Stderr, "matches: %d", len(ems))
+		// fmt.Printf("%+v\n%+v", remainingMatches, ems)
+		// fmt.Fprintf(os.Stderr, "matches: %d", len(ems))
 		for id, _ := range ems {
 			fmt.Printf("%s\n", id)
 		}
