@@ -1,23 +1,23 @@
 {
   "@context": "https://openvex.dev/ns",
   "@id": "https://openvex.dev/docs/example/puerco/vex-grype-demo-1",
-  "author": "Wolfi J Inkinson",
-  "role": "Document Creator",
+  "author": "Puerco J. Cerdo",
+  "role": "Security Researcher",
   "timestamp": "2023-06-06T20:26:03.647787998-06:00",
   "version": "1",
   "statements": [
     {
       "vulnerability": "CVE-2023-1255",
       "products": [
-        "pkg:oci/alpine@sha256%3A02bb6f428431fbc2809c5d1b41eab5a68350194fb508869a33cb1af4444c9b11"
+        "pkg:oci/alpine@sha256%3Ab6ca290b6b4cdcca5b3db3ffa338ee0285c11744b4a6abaa9627746ee3291d8d"
       ],
       "subcomponents": [
         "pkg:apk/alpine/libcrypto3@3.0.8-r3?arch=x86_64&upstream=openssl&distro=alpine-3.17.3",
         "pkg:apk/alpine/libssl3@3.0.8-r3?arch=x86_64&upstream=openssl&distro=alpine-3.17.3"
       ],
       "status": "not_affected",
-      "justification": "inline_mitigations_already_exist",
-      "impact_statement": "This image includes a hack in the amd64 variant to limit reads when decrypting AES-XTS, the x86_64 variant is not affected"
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "This image is the amd64 variant of alpine. CVE-2023-1255 only affects arm64"
     }
   ]
 }

@@ -106,7 +106,7 @@ func (pres *Presenter) Present(output io.Writer) error {
 
 	if pres.vexReport != nil && len(pres.vexReport) > 0 {
 		fmt.Fprintln(
-			output, "\n\nOPENVEX REPORT\n==============\n\nThese scanning results vulnerabilities from VEX data:\n\n",
+			output, "\n\nOPENVEX REPORT\n==============\n\nThese scanning results exclude vulnerabilities using VEX data:\n\n",
 		)
 		vexTable := tablewriter.NewWriter(output)
 		vexColumns := []string{"Vulnerability", "Status", "Justification", "Component"}
