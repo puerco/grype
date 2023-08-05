@@ -1,0 +1,4 @@
+---
+ignore:
+  - vulnerability: CVE-2023-1255
+    vex-status: fixed

@@ -1,0 +1,81 @@
+{
+ byFingerprint:map[
+  {
+    vulnerabilityID:CVE-2023-1255
+    vulnerabilityNamespace:alpine:distro:alpine:3.17
+    vulnerabilityFixes:3.0.8-r4
+    packageID:aadad53ca60752e4
+  }:{
+  Vulnerability:{
+    Constraint:{
+      raw:< 3.0.8-r4
+      expression:{
+        units:[[{rangeOperator:< version:3.0.8-r4}]]
+        comparators:[[0xc0006891b0]]
+      }
+    }
+    PackageQualifiers:[]
+    CPEs:[]
+    ID:CVE-2023-1255
+    Namespace:alpine:distro:alpine:3.17
+    Fix:{Versions:[3.0.8-r4] State:fixed}
+    Advisories:[]
+    RelatedVulnerabilities:[
+      {ID:CVE-2023-1255 Namespace:nvd:cpe}
+    ]
+  }
+  Package:{
+    ID:aadad53ca60752e4
+    Name:libssl3
+    Version:3.0.8-r3
+    Locations:{
+      set:map[
+        {
+          Coordinates:{
+            RealPath:/lib/apk/db/installed
+            FileSystemID:sha256:f1417ff83b319fbdae6dd9cd6d8c9c88002dcd75ecf6ec201c8c6894681cf2b5
+          }
+          VirtualPath:/lib/apk/db/installed
+          ref:{id:173 RealPath:/lib/apk/db/installed}
+        }:{Annotations:map[evidence:primary]}
+      ]
+    }
+    Language:
+    Licenses:[Apache-2.0]
+    Type:apk
+    CPEs:[
+      {Part:a Vendor:libssl3 Product:libssl3 Version:3.0.8-r3 Update: Edition: SWEdition: TargetSW: TargetHW: Other: Language:}
+      {Part:a Vendor:libssl3 Product:libssl Version:3.0.8-r3 Update: Edition: SWEdition: TargetSW: TargetHW: Other: Language:}
+      {Part:a Vendor:libssl Product:libssl3 Version:3.0.8-r3 Update: Edition: SWEdition: TargetSW: TargetHW: Other: Language:}
+      {Part:a Vendor:libssl Product:libssl Version:3.0.8-r3 Update: Edition: SWEdition: TargetSW: TargetHW: Other: Language:}
+    ]
+    PURL:pkg:apk/alpine/libssl3@3.0.8-r3?arch=x86_64&upstream=openssl&distro=alpine-3.17.3
+    Upstreams:[{Name:openssl Version:}]
+    MetadataType:
+    Metadata:<nil>
+  }
+  Details:[
+   {
+     Type:exact-indirect-match
+     SearchedBy:map[
+       distro:map[
+         type:alpine version:3.17.3]
+         namespace:alpine:distro:alpine:3.17
+         package:map[name:openssl version:3.0.8-r3
+       ]
+     ]
+     Found:map[
+       versionConstraint:< 3.0.8-r4 (apk) 
+       vulnerabilityID:CVE-2023-1255
+     ]
+     Matcher:apk-matcher
+     Confidence:1
+   }
+  ]
+  }
+
+
+
+ {vulnerabilityID:CVE-2023-1255 vulnerabilityNamespace:alpine:distro:alpine:3.17 vulnerabilityFixes:3.0.8-r4 packageID:cc8f90662d91481d}:{Vulnerability:{Constraint:{raw:< 3.0.8-r4 expression:{units:[[{rangeOperator:< version:3.0.8-r4}]] comparators:[[0xc001f82920]]}} PackageQualifiers:[] CPEs:[] ID:CVE-2023-1255 Namespace:alpine:distro:alpine:3.17 Fix:{Versions:[3.0.8-r4] State:fixed} Advisories:[] RelatedVulnerabilities:[{ID:CVE-2023-1255 Namespace:nvd:cpe}]} Package:{ID:cc8f90662d91481d Name:libcrypto3 Version:3.0.8-r3 Locations:{set:map[{Coordinates:{RealPath:/lib/apk/db/installed FileSystemID:sha256:f1417ff83b319fbdae6dd9cd6d8c9c88002dcd75ecf6ec201c8c6894681cf2b5} VirtualPath:/lib/apk/db/installed ref:{id:173 RealPath:/lib/apk/db/installed}}:{Annotations:map[evidence:primary]}]} Language: Licenses:[Apache-2.0] Type:apk CPEs:[{Part:a Vendor:libcrypto3 Product:libcrypto3 Version:3.0.8-r3 Update: Edition: SWEdition: TargetSW: TargetHW: Other: Language:} {Part:a Vendor:libcrypto3 Product:libcrypto Version:3.0.8-r3 Update: Edition: SWEdition: TargetSW: TargetHW: Other: Language:} {Part:a Vendor:libcrypto Product:libcrypto3 Version:3.0.8-r3 Update: Edition: SWEdition: TargetSW: TargetHW: Other: Language:} {Part:a Vendor:libcrypto Product:libcrypto Version:3.0.8-r3 Update: Edition: SWEdition: TargetSW: TargetHW: Other: Language:}] PURL:pkg:apk/alpine/libcrypto3@3.0.8-r3?arch=x86_64&upstream=openssl&distro=alpine-3.17.3 Upstreams:[{Name:openssl Version:}] MetadataType: Metadata:<nil>} Details:[{Type:exact-indirect-match SearchedBy:map[distro:map[type:alpine version:3.17.3] namespace:alpine:distro:alpine:3.17 package:map[name:openssl version:3.0.8-r3]] Found:map[versionConstraint:< 3.0.8-r4 (apk) vulnerabilityID:CVE-2023-1255] Matcher:apk-matcher Confidence:1}]} {vulnerabilityID:CVE-2023-2650 vulnerabilityNamespace:alpine:distro:alpine:3.17 vulnerabilityFixes:3.0.9-r0 packageID:aadad53ca60752e4}:{Vulnerability:{Constraint:{raw:< 3.0.9-r0 expression:{units:[[{rangeOperator:< version:3.0.9-r0}]] comparators:[[0xc000689250]]}} PackageQualifiers:[] CPEs:[] ID:CVE-2023-2650 Namespace:alpine:distro:alpine:3.17 Fix:{Versions:[3.0.9-r0] State:fixed} Advisories:[] RelatedVulnerabilities:[{ID:CVE-2023-2650 Namespace:nvd:cpe}]} Package:{ID:aadad53ca60752e4 Name:libssl3 Version:3.0.8-r3 Locations:{set:map[{Coordinates:{RealPath:/lib/apk/db/installed FileSystemID:sha256:f1417ff83b319fbdae6dd9cd6d8c9c88002dcd75ecf6ec201c8c6894681cf2b5} VirtualPath:/lib/apk/db/installed ref:{id:173 RealPath:/lib/apk/db/installed}}:{Annotations:map[evidence:primary]}]} Language: Licenses:[Apache-2.0] Type:apk CPEs:[{Part:a Vendor:libssl3 Product:libssl3 Version:3.0.8-r3 Update: Edition: SWEdition: TargetSW: TargetHW: Other: Language:} {Part:a Vendor:libssl3 Product:libssl Version:3.0.8-r3 Update: Edition: SWEdition: TargetSW: TargetHW: Other: Language:} {Part:a Vendor:libssl Product:libssl3 Version:3.0.8-r3 Update: Edition: SWEdition: TargetSW: TargetHW: Other: Language:} {Part:a Vendor:libssl Product:libssl Version:3.0.8-r3 Update: Edition: SWEdition: TargetSW: TargetHW: Other: Language:}] PURL:pkg:apk/alpine/libssl3@3.0.8-r3?arch=x86_64&upstream=openssl&distro=alpine-3.17.3 Upstreams:[{Name:openssl Version:}] MetadataType: Metadata:<nil>} Details:[{Type:exact-indirect-match SearchedBy:map[distro:map[type:alpine version:3.17.3] namespace:alpine:distro:alpine:3.17 package:map[name:openssl version:3.0.8-r3]] Found:map[versionConstraint:< 3.0.9-r0 (apk) vulnerabilityID:CVE-2023-2650] Matcher:apk-matcher Confidence:1}]} {vulnerabilityID:CVE-2023-2650 vulnerabilityNamespace:alpine:distro:alpine:3.17 vulnerabilityFixes:3.0.9-r0 packageID:cc8f90662d91481d}:{Vulnerability:{Constraint:{raw:< 3.0.9-r0 expression:{units:[[{rangeOperator:< version:3.0.9-r0}]] comparators:[[0xc001f82970]]}} PackageQualifiers:[] CPEs:[] ID:CVE-2023-2650 Namespace:alpine:distro:alpine:3.17 Fix:{Versions:[3.0.9-r0] State:fixed} Advisories:[] RelatedVulnerabilities:[{ID:CVE-2023-2650 Namespace:nvd:cpe}]} Package:{ID:cc8f90662d91481d Name:libcrypto3 Version:3.0.8-r3 Locations:{set:map[{Coordinates:{RealPath:/lib/apk/db/installed FileSystemID:sha256:f1417ff83b319fbdae6dd9cd6d8c9c88002dcd75ecf6ec201c8c6894681cf2b5} VirtualPath:/lib/apk/db/installed ref:{id:173 RealPath:/lib/apk/db/installed}}:{Annotations:map[evidence:primary]}]} Language: Licenses:[Apache-2.0] Type:apk CPEs:[{Part:a Vendor:libcrypto3 Product:libcrypto3 Version:3.0.8-r3 Update: Edition: SWEdition: TargetSW: TargetHW: Other: Language:} {Part:a Vendor:libcrypto3 Product:libcrypto Version:3.0.8-r3 Update: Edition: SWEdition: TargetSW: TargetHW: Other: Language:} {Part:a Vendor:libcrypto Product:libcrypto3 Version:3.0.8-r3 Update: Edition: SWEdition: TargetSW: TargetHW: Other: Language:} {Part:a Vendor:libcrypto Product:libcrypto Version:3.0.8-r3 Update: Edition: SWEdition: TargetSW: TargetHW: Other: Language:}] PURL:pkg:apk/alpine/libcrypto3@3.0.8-r3?arch=x86_64&upstream=openssl&distro=alpine-3.17.3 Upstreams:[{Name:openssl Version:}] MetadataType: Metadata:<nil>} Details:[{Type:exact-indirect-match SearchedBy:map[distro:map[type:alpine version:3.17.3] namespace:alpine:distro:alpine:3.17 package:map[name:openssl version:3.0.8-r3]] Found:map[versionConstraint:< 3.0.9-r0 (apk) vulnerabilityID:CVE-2023-2650] Matcher:apk-matcher Confidence:1}]}] byPackage:map[aadad53ca60752e4:[{vulnerabilityID:CVE-2023-1255 vulnerabilityNamespace:alpine:distro:alpine:3.17 vulnerabilityFixes:3.0.8-r4 packageID:aadad53ca60752e4} {vulnerabilityID:CVE-2023-2650 vulnerabilityNamespace:alpine:distro:alpine:3.17 vulnerabilityFixes:3.0.9-r0 packageID:aadad53ca60752e4}] cc8f90662d91481d:[{vulnerabilityID:CVE-2023-1255 vulnerabilityNamespace:alpine:distro:alpine:3.17 vulnerabilityFixes:3.0.8-r4 packageID:cc8f90662d91481d} {vulnerabilityID:CVE-2023-2650 vulnerabilityNamespace:alpine:distro:alpine:3.17 vulnerabilityFixes:3.0.9-r0 packageID:cc8f90662d91481d}]
+ ]
+} 

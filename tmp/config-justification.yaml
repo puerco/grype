@@ -1,0 +1,4 @@
+---
+ignore:
+  - vex-status: not_affected
+    vex-justification: vulnerable_code_not_present
