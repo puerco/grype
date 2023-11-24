@@ -81,27 +81,51 @@ func identifiersFromInput(inputString, platformString string) ([]string, error) 
 		func WithAuth(auth authn.Authenticator) Option
 		func WithAuthFromKeychain(keys authn.Keychain) Option
 		func WithContext(ctx context.Context) Option
-		func WithJobs(jobs int) Option
-		func WithNoClobber(noclobber bool) Option
-		func WithNondistributable() Option
 		func WithPlatform(platform *v1.Platform) Option
-		func WithTransport(t http.RoundTripper) Option
-		func WithUserAgent(ua string) Option
 	*/
 
+	// First normalize the reference
 	ref, err := name.ParseReference(inputString)
 	if err != nil {
 		return nil, fmt.Errorf("parsing image reference: %w", err)
 	}
 
-	reg := ref.Context().Registry.RegistryStr()
-
-	dString, err := crane.Digest(inputString)
-	if err != nil {
-		return nil, fmt.Errorf("getting image digest: %w", err)
+	identifier := ref.Identifier()
+	var dString string
+	if strings.HasPrefix(identifier, "sha") {
+		dString = identifier
 	}
 
-	return []string{reg, dString}, nil
+	nRef := ref.Name()
+	// nRef := ref.Identifier()
+
+	// If we dont have the digest, query the registry
+	if dString == "" {
+		dString, err = crane.Digest(inputString)
+		if err != nil {
+			return nil, fmt.Errorf("getting image digest: %w", err)
+		}
+	}
+	res := []string{nRef, dString}
+	// Compute the repository URL
+	pts := strings.Split(ref.Context().RepositoryStr(), "/")
+	imageName := pts[len(pts)-1]
+
+	for _, repoURL := range []string{"", ref.Context().RegistryStr() + "/" + strings.ReplaceAll(ref.Context().RepositoryStr(), imageName, "")} {
+		qMap := map[string]string{}
+
+		if repoURL != "" {
+			qMap["repository_url"] = repoURL
+		}
+		qs := packageurl.QualifiersFromMap(qMap)
+
+		// Generate the purls corresponding to the user's input
+		res = append(res, packageurl.NewPackageURL(
+			"oci", "", imageName, dString, qs, "",
+		).String())
+	}
+	return res, nil
+	//return []string{nRef, ref.Name(), dString, ref.Context().RepositoryStr()}, nil
 }
 
 func identifiersFromDigests(digests []string) []string {
