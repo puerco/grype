@@ -22,7 +22,7 @@ func TestIdentifiersFromInput(t *testing.T) {
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			res, err := identifiersFromInput(tc.input, "")
+			res, err := identifiersFromInput(tc.input, "linux", "amd64")
 			if tc.mustErr {
 				require.Error(t, err)
 				return

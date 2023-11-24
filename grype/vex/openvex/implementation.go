@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/go-containerregistry/pkg/crane"
 	"github.com/google/go-containerregistry/pkg/name"
+	v1 "github.com/google/go-containerregistry/pkg/v1"
 	openvex "github.com/openvex/go-vex/pkg/vex"
 
 	"github.com/anchore/grype/grype/match"
@@ -66,7 +67,8 @@ func productIdentifiersFromContext(pkgContext *pkg.Context) ([]string, error) {
 		// TODO(puerco): We can create a wider definition here. This effectively
 		// adds the multiarch image and the image of the OS running grype. We
 		// could generate more identifiers to match better.
-		fmt.Printf("+%v", v.UserInput)
+
+		//fmt.Printf("+%v", v.UserInput, v.Architecture, v.OS)
 		os.Exit(1)
 		return identifiersFromDigests(v.RepoDigests), nil
 	default:
@@ -76,7 +78,7 @@ func productIdentifiersFromContext(pkgContext *pkg.Context) ([]string, error) {
 }
 
 // identifiersFromInput
-func identifiersFromInput(inputString, platformString string) ([]string, error) {
+func identifiersFromInput(inputString, os, arch string) ([]string, error) {
 	/*
 		func WithAuth(auth authn.Authenticator) Option
 		func WithAuthFromKeychain(keys authn.Keychain) Option
@@ -106,7 +108,19 @@ func identifiersFromInput(inputString, platformString string) ([]string, error) 
 			return nil, fmt.Errorf("getting image digest: %w", err)
 		}
 	}
-	res := []string{nRef, dString}
+
+	// Now compute the identifiers for the platform
+	platform, err := v1.ParsePlatform(os + "/" + arch)
+	if err != nil {
+		return nil, fmt.Errorf("parsing platform: %w", err)
+	}
+
+	archDString, err := crane.Digest(inputString, crane.WithPlatform(platform))
+	if err != nil {
+		return nil, fmt.Errorf("getting image digest: %w", err)
+	}
+
+	res := []string{nRef, dString, archDString}
 	// Compute the repository URL
 	pts := strings.Split(ref.Context().RepositoryStr(), "/")
 	imageName := pts[len(pts)-1]
