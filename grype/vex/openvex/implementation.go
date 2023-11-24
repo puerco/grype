@@ -4,8 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"os"
 	"strings"
 
+	"github.com/google/go-containerregistry/pkg/crane"
 	"github.com/google/go-containerregistry/pkg/name"
 	openvex "github.com/openvex/go-vex/pkg/vex"
 
@@ -64,11 +66,42 @@ func productIdentifiersFromContext(pkgContext *pkg.Context) ([]string, error) {
 		// TODO(puerco): We can create a wider definition here. This effectively
 		// adds the multiarch image and the image of the OS running grype. We
 		// could generate more identifiers to match better.
+		fmt.Printf("+%v", v.UserInput)
+		os.Exit(1)
 		return identifiersFromDigests(v.RepoDigests), nil
 	default:
 		// Fail for now
 		return nil, errors.New("source type not supported for VEX")
 	}
+}
+
+// identifiersFromInput
+func identifiersFromInput(inputString, platformString string) ([]string, error) {
+	/*
+		func WithAuth(auth authn.Authenticator) Option
+		func WithAuthFromKeychain(keys authn.Keychain) Option
+		func WithContext(ctx context.Context) Option
+		func WithJobs(jobs int) Option
+		func WithNoClobber(noclobber bool) Option
+		func WithNondistributable() Option
+		func WithPlatform(platform *v1.Platform) Option
+		func WithTransport(t http.RoundTripper) Option
+		func WithUserAgent(ua string) Option
+	*/
+
+	ref, err := name.ParseReference(inputString)
+	if err != nil {
+		return nil, fmt.Errorf("parsing image reference: %w", err)
+	}
+
+	reg := ref.Context().Registry.RegistryStr()
+
+	dString, err := crane.Digest(inputString)
+	if err != nil {
+		return nil, fmt.Errorf("getting image digest: %w", err)
+	}
+
+	return []string{reg, dString}, nil
 }
 
 func identifiersFromDigests(digests []string) []string {
