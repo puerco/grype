@@ -4,12 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
-	"os"
 	"strings"
 
-	"github.com/google/go-containerregistry/pkg/crane"
 	"github.com/google/go-containerregistry/pkg/name"
-	v1 "github.com/google/go-containerregistry/pkg/v1"
+	"github.com/openvex/go-vex/pkg/oci"
 	openvex "github.com/openvex/go-vex/pkg/vex"
 
 	"github.com/anchore/grype/grype/match"
@@ -64,82 +62,18 @@ func (ovm *Processor) ReadVexDocuments(docs []string) (interface{}, error) {
 func productIdentifiersFromContext(pkgContext *pkg.Context) ([]string, error) {
 	switch v := pkgContext.Source.Metadata.(type) {
 	case source.StereoscopeImageSourceMetadata:
-		// TODO(puerco): We can create a wider definition here. This effectively
-		// adds the multiarch image and the image of the OS running grype. We
-		// could generate more identifiers to match better.
+		// Call the OpenVEX OCI module to generate the identifiers from the
+		// image reference specified by the user.
+		bundle, err := oci.GenerateReferenceIdentifiers(v.UserInput, v.OS, v.Architecture)
+		if err != nil {
+			return nil, fmt.Errorf("generating identifiers from image reference: %w", err)
+		}
 
-		//fmt.Printf("+%v", v.UserInput, v.Architecture, v.OS)
-		os.Exit(1)
-		return identifiersFromDigests(v.RepoDigests), nil
+		return bundle.ToStringSlice(), nil
 	default:
-		// Fail for now
+		// Fail as we only support VEXing container images for now
 		return nil, errors.New("source type not supported for VEX")
 	}
-}
-
-// identifiersFromInput
-func identifiersFromInput(inputString, os, arch string) ([]string, error) {
-	/*
-		func WithAuth(auth authn.Authenticator) Option
-		func WithAuthFromKeychain(keys authn.Keychain) Option
-		func WithContext(ctx context.Context) Option
-		func WithPlatform(platform *v1.Platform) Option
-	*/
-
-	// First normalize the reference
-	ref, err := name.ParseReference(inputString)
-	if err != nil {
-		return nil, fmt.Errorf("parsing image reference: %w", err)
-	}
-
-	identifier := ref.Identifier()
-	var dString string
-	if strings.HasPrefix(identifier, "sha") {
-		dString = identifier
-	}
-
-	nRef := ref.Name()
-	// nRef := ref.Identifier()
-
-	// If we dont have the digest, query the registry
-	if dString == "" {
-		dString, err = crane.Digest(inputString)
-		if err != nil {
-			return nil, fmt.Errorf("getting image digest: %w", err)
-		}
-	}
-
-	// Now compute the identifiers for the platform
-	platform, err := v1.ParsePlatform(os + "/" + arch)
-	if err != nil {
-		return nil, fmt.Errorf("parsing platform: %w", err)
-	}
-
-	archDString, err := crane.Digest(inputString, crane.WithPlatform(platform))
-	if err != nil {
-		return nil, fmt.Errorf("getting image digest: %w", err)
-	}
-
-	res := []string{nRef, dString, archDString}
-	// Compute the repository URL
-	pts := strings.Split(ref.Context().RepositoryStr(), "/")
-	imageName := pts[len(pts)-1]
-
-	for _, repoURL := range []string{"", ref.Context().RegistryStr() + "/" + strings.ReplaceAll(ref.Context().RepositoryStr(), imageName, "")} {
-		qMap := map[string]string{}
-
-		if repoURL != "" {
-			qMap["repository_url"] = repoURL
-		}
-		qs := packageurl.QualifiersFromMap(qMap)
-
-		// Generate the purls corresponding to the user's input
-		res = append(res, packageurl.NewPackageURL(
-			"oci", "", imageName, dString, qs, "",
-		).String())
-	}
-	return res, nil
-	//return []string{nRef, ref.Name(), dString, ref.Context().RepositoryStr()}, nil
 }
 
 func identifiersFromDigests(digests []string) []string {

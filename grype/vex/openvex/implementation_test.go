@@ -6,33 +6,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestIdentifiersFromInput(t *testing.T) {
-	for _, tc := range []struct {
-		name     string
-		input    string
-		expected []string
-		mustErr  bool
-	}{
-		{
-			name:  "basic image name",
-			input: "alpine",
-			//input:    "alpine@sha256:eece025e432126ce23f223450a0326fbebde39cdf496a85d8c016293fc851978",
-			expected: []string{"a"},
-			mustErr:  false,
-		},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			res, err := identifiersFromInput(tc.input, "linux", "amd64")
-			if tc.mustErr {
-				require.Error(t, err)
-				return
-			}
-			require.NoError(t, err)
-			require.Equal(t, res, tc.expected)
-		})
-	}
-}
-
 func TestIdentifiersFromDigests(t *testing.T) {
 	for _, tc := range []struct {
 		sut      string
